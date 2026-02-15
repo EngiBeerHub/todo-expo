@@ -1,8 +1,10 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -12,6 +14,21 @@ export default function App() {
   const { data, isLoading, isError, error, refetch, isRefetching } = useQuery({
     queryKey: ["todos"],
     queryFn: todoApi.list,
+    retry: false,
+    staleTime: Number.POSITIVE_INFINITY,
+  });
+
+  const [title, setTitle] = useState("");
+
+  const queryClient = useQueryClient();
+
+  const createMutation = useMutation({
+    mutationFn: (newTitle: string) => todoApi.create(newTitle),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["todos"] });
+      console.log("invaildate!");
+      setTitle("");
+    },
   });
 
   // TODO: 今はサンプルのリスト表示。
@@ -28,9 +45,11 @@ export default function App() {
 
   return (
     <View className="flex-1 px-5 pt-14">
+      {/* ヘッダー */}
       <View className="flex-row items-center justify-between">
         <Text className="font-semibold text-2xl">Todos</Text>
 
+        {/* 更新ボタン */}
         <TouchableOpacity
           className="rounded-xl border px-3 py-2"
           disabled={isRefetching}
@@ -40,6 +59,29 @@ export default function App() {
         </TouchableOpacity>
       </View>
 
+      {/* タスク追加フォーム */}
+      <View className="mt-6 flex-row gap-2">
+        <TextInput
+          className="flex-1 rounded-xl border px-3 py-2"
+          onChangeText={setTitle}
+          placeholder="New todo..."
+          value={title}
+        />
+
+        <TouchableOpacity
+          className="rounded-xl border px-4 py-2"
+          onPress={() => {
+            if (!title.trim()) {
+              return;
+            }
+            createMutation.mutate(title);
+          }}
+        >
+          <Text>{createMutation.isPending ? "Adding..." : "Add"}</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* タスクリスト */}
       <FlatList
         className="mt-4"
         data={todos}

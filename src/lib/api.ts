@@ -10,7 +10,7 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const request = async <T>(path: string, init?: RequestInit) => {
   // ダミー遅延
-  await sleep(2000);
+  await sleep(1500);
 
   const res = await fetch(`${API_BASE_URL}${path}`, {
     ...init,

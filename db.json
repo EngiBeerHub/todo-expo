@@ -2,16 +2,40 @@
   "$schema": "./node_modules/json-server/schema.json",
   "todos": [
     {
-      "id": 1,
+      "id": "1",
       "title": "Buy milk",
       "completed": false,
       "createdAt": "2026-02-16T00:00:00.000Z"
     },
     {
-      "id": 2,
+      "id": "2",
       "title": "Learn Expo Router",
       "completed": true,
       "createdAt": "2026-02-17T00:00:00.000Z"
+    },
+    {
+      "id": "adce",
+      "title": "Buy egg",
+      "completed": false,
+      "createdAt": "2026-02-15T11:31:16.454Z"
+    },
+    {
+      "id": "6f92",
+      "title": "Buy laptop",
+      "completed": false,
+      "createdAt": "2026-02-15T11:33:54.682Z"
+    },
+    {
+      "id": "c9e8",
+      "title": "Mail",
+      "completed": false,
+      "createdAt": "2026-02-15T11:35:02.729Z"
+    },
+    {
+      "id": "d9e5",
+      "title": "Drive",
+      "completed": false,
+      "createdAt": "2026-02-15T11:36:48.535Z"
     }
   ]
 }
