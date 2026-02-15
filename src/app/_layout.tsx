@@ -1,5 +1,5 @@
 import "../global.css";
-
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Slot } from "expo-router";
 import { type HeroUINativeConfig, HeroUINativeProvider } from "heroui-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -13,12 +13,20 @@ const config: HeroUINativeConfig = {
     stylingPrinciples: false,
   },
 };
+
+/**
+ * アプリ全体で共有する React Query クライアント。
+ */
+const queryClient = new QueryClient();
+
 export default function Layout() {
   return (
     <GestureHandlerRootView>
-      <HeroUINativeProvider config={config}>
-        <Slot />
-      </HeroUINativeProvider>
+      <QueryClientProvider client={queryClient}>
+        <HeroUINativeProvider config={config}>
+          <Slot />
+        </HeroUINativeProvider>
+      </QueryClientProvider>
     </GestureHandlerRootView>
   );
 }
