@@ -1,4 +1,4 @@
-const { getDefaultConfig } = require("expo/metro-config");
+  const { getDefaultConfig } = require("expo/metro-config");
 const { withUniwindConfig } = require("uniwind/metro"); // make sure this import exists
 
 /** @type {import('expo/metro-config').MetroConfig} */

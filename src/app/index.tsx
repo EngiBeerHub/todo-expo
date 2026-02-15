@@ -1,5 +1,6 @@
 import { StatusBar } from "expo-status-bar";
 import { Text, View } from "react-native";
+import {Button} from "heroui-native";
 
 export default function App() {
   return (
@@ -24,6 +25,10 @@ export default function App() {
           app/index.tsx
         </Text>
       </Text>
+
+      <Button onPress={() => console.log('Pressed!')}>
+          <Button.Label>Get Started</Button.Label>
+      </Button>
 
       <StatusBar style="dark" />
     </View>
