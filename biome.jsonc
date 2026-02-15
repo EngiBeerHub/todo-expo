@@ -1,0 +1,14 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "extends": ["ultracite/biome/core"],
+  "files": {
+    "includes": [
+      "!metro.config.js",
+      "!src/uniwind-types.d.ts",
+      "!.idea",
+      "!.vscode",
+      "ios",
+      "!android"
+    ]
+  }
+}
