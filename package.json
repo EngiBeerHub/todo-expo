@@ -26,9 +26,11 @@
   "devDependencies": {
     "@biomejs/biome": "^2.3.15",
     "@types/react": "~19.1.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
     "json-server": "^1.0.0-beta.6",
-    "typescript": "~5.9.2",
-    "ultracite": "^7.2.1"
+    "prettier": "^3.8.1",
+    "typescript": "~5.9.2"
   },
   "private": true,
   "scripts": {
@@ -36,8 +38,7 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "check": "ultracite check",
-    "fix": "ultracite fix",
-    "api": "json-server --watch db.json"
+    "api": "json-server --watch db.json",
+    "lint": "expo lint"
   }
 }

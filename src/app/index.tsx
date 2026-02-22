@@ -1,7 +1,8 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Keyboard,
   Text,
@@ -9,17 +10,17 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { type Todo, todoApi } from "../lib/api";
+import type { Todo } from "../lib/api";
+import { todoApi } from "../lib/api";
+import { TodoRow } from "../components/TodoRow";
 
 export default function App() {
   // 追加タスクタイトル
   const [title, setTitle] = useState("");
   // done toggle管理
   const [pendingToggleIds, setPendingToggleIds] = useState<Set<number>>(
-    () => new Set()
+    () => new Set(),
   );
-
-  const queryClient = useQueryClient();
 
   const { data, isLoading, isError, error, refetch, isRefetching } = useQuery({
     queryKey: ["todos"],
@@ -44,6 +45,7 @@ export default function App() {
     mutationFn: (todo: Todo) =>
       todoApi.update(todo.id, { completed: !todo.completed }),
 
+    // 二重タップ防止-処理中Setに追加
     onMutate: (todo) => {
       setPendingToggleIds((prev) => {
         const next = new Set(prev);
@@ -52,6 +54,7 @@ export default function App() {
       });
     },
 
+    // 二重タップ防止-処理中Setから削除
     onSettled: async (_data, _err, todo) => {
       setPendingToggleIds((prev) => {
         const next = new Set(prev);
@@ -65,7 +68,10 @@ export default function App() {
     onSuccess: async () => await refetch(),
   });
 
-  // TODO: 今はサンプルのリスト表示。
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => todoApi.remove(id),
+    onSuccess: async () => await refetch(),
+  });
 
   // ローディング中の場合
   if (isLoading) {
@@ -126,56 +132,28 @@ export default function App() {
         keyExtractor={(item) => String(item.id)}
         renderItem={({ item }) => (
           <TodoRow
-            item={item}
             isToggling={pendingToggleIds.has(item.id)}
+            isDeleting={deleteMutation.isPending}
+            item={item}
             onToggle={(todo) => {
               if (pendingToggleIds.has(todo.id)) {
                 return;
               }
               toggleMutation.mutate(todo);
             }}
+            onDelete={(todo) => {
+              Alert.alert("Delete todo?", `"${todo.title}" will be removed.`, [
+                { text: "Cancel", style: "cancel" },
+                {
+                  text: "Delete",
+                  style: "destructive",
+                  onPress: () => deleteMutation.mutate(todo.id),
+                },
+              ]);
+            }}
           />
         )}
       />
-    </View>
-  );
-}
-
-function TodoRow({
-  item,
-  isToggling,
-  onToggle,
-}: {
-  item: Todo;
-  isToggling: boolean;
-  onToggle: (todo: Todo) => void;
-}) {
-  return (
-    <View className="flex-row items-center justify-between rounded-2xl border px-4 py-3">
-      <View>
-        <Text className="text-base">{item.title}</Text>
-        <Text className="mt-1 text-xs opacity-60">
-          {item.completed ? "Completed" : "Active"}
-        </Text>
-      </View>
-
-      <TouchableOpacity
-        className="rounded-lg border px-3 py-1"
-        disabled={isToggling}
-        onPress={() => onToggle(item)}
-      >
-        <Text>
-          {(() => {
-            if (isToggling) {
-              return "...";
-            }
-            if (item.completed) {
-              return "Undo";
-            }
-            return "Done";
-          })()}
-        </Text>
-      </TouchableOpacity>
     </View>
   );
 }
