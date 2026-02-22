@@ -3,6 +3,7 @@ import { useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  Keyboard,
   Text,
   TextInput,
   TouchableOpacity,
@@ -27,6 +28,7 @@ export default function App() {
   const createMutation = useMutation({
     mutationFn: (newTitle: string) => todoApi.create(newTitle),
     onSuccess: async () => {
+      Keyboard.dismiss();
       await refetch();
       console.log("invalidate!");
       setTitle("");
