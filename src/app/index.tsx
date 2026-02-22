@@ -12,17 +12,21 @@ import {
 import { type Todo, todoApi } from "../lib/api";
 
 export default function App() {
+  // 追加タスクタイトル
+  const [title, setTitle] = useState("");
+  // done toggle管理
+  const [pendingToggleIds, setPendingToggleIds] = useState<Set<number>>(
+    () => new Set()
+  );
+
+  const queryClient = useQueryClient();
+
   const { data, isLoading, isError, error, refetch, isRefetching } = useQuery({
     queryKey: ["todos"],
     queryFn: todoApi.list,
     retry: false,
     staleTime: Number.POSITIVE_INFINITY,
   });
-
-  // 追加タスクタイトル
-  const [title, setTitle] = useState("");
-
-  const queryClient = useQueryClient();
 
   // タスク作成mutation
   const createMutation = useMutation({
@@ -39,6 +43,25 @@ export default function App() {
   const toggleMutation = useMutation({
     mutationFn: (todo: Todo) =>
       todoApi.update(todo.id, { completed: !todo.completed }),
+
+    onMutate: (todo) => {
+      setPendingToggleIds((prev) => {
+        const next = new Set(prev);
+        next.add(todo.id);
+        return next;
+      });
+    },
+
+    onSettled: async (_data, _err, todo) => {
+      setPendingToggleIds((prev) => {
+        const next = new Set(prev);
+        next.delete(todo.id);
+        return next;
+      });
+
+      await refetch();
+    },
+
     onSuccess: async () => await refetch(),
   });
 
@@ -104,7 +127,13 @@ export default function App() {
         renderItem={({ item }) => (
           <TodoRow
             item={item}
-            onToggle={(todo) => toggleMutation.mutate(todo)}
+            isToggling={pendingToggleIds.has(item.id)}
+            onToggle={(todo) => {
+              if (pendingToggleIds.has(todo.id)) {
+                return;
+              }
+              toggleMutation.mutate(todo);
+            }}
           />
         )}
       />
@@ -114,9 +143,11 @@ export default function App() {
 
 function TodoRow({
   item,
+  isToggling,
   onToggle,
 }: {
   item: Todo;
+  isToggling: boolean;
   onToggle: (todo: Todo) => void;
 }) {
   return (
@@ -130,9 +161,20 @@ function TodoRow({
 
       <TouchableOpacity
         className="rounded-lg border px-3 py-1"
+        disabled={isToggling}
         onPress={() => onToggle(item)}
       >
-        <Text>{item.completed ? "Undo" : "Done"}</Text>
+        <Text>
+          {(() => {
+            if (isToggling) {
+              return "...";
+            }
+            if (item.completed) {
+              return "Undo";
+            }
+            return "Done";
+          })()}
+        </Text>
       </TouchableOpacity>
     </View>
   );
