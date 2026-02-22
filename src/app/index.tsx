@@ -18,20 +18,31 @@ export default function App() {
     staleTime: Number.POSITIVE_INFINITY,
   });
 
+  // 追加タスクタイトル
   const [title, setTitle] = useState("");
 
   const queryClient = useQueryClient();
 
+  // タスク作成mutation
   const createMutation = useMutation({
     mutationFn: (newTitle: string) => todoApi.create(newTitle),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["todos"] });
-      console.log("invaildate!");
+    onSuccess: async () => {
+      await refetch();
+      console.log("invalidate!");
       setTitle("");
     },
   });
 
+  // 完了トグルmutation
+  const toggleMutation = useMutation({
+    mutationFn: (todo: Todo) =>
+      todoApi.update(todo.id, { completed: !todo.completed }),
+    onSuccess: async () => await refetch(),
+  });
+
   // TODO: 今はサンプルのリスト表示。
+
+  // ローディング中の場合
   if (isLoading) {
     return (
       <View className={"flex-1 items-center justify-center"}>
@@ -41,6 +52,7 @@ export default function App() {
     );
   }
 
+  // ローディング完了の場合
   const todos = data ?? [];
 
   return (
@@ -87,49 +99,39 @@ export default function App() {
         data={todos}
         ItemSeparatorComponent={() => <View className="h-3" />}
         keyExtractor={(item) => String(item.id)}
-        renderItem={({ item }) => <TodoRow item={item} />}
+        renderItem={({ item }) => (
+          <TodoRow
+            item={item}
+            onToggle={(todo) => toggleMutation.mutate(todo)}
+          />
+        )}
       />
     </View>
   );
-  // return (
-  //   <View className="flex-1 items-center justify-center bg-white px-8 dark:bg-black">
-  //     {/* Heading */}
-  //     <Text className="mb-3 font-extrabold text-4xl text-gray-800 tracking-tight dark:text-white">
-  //       🚀 Welcome
-  //     </Text>
-  //
-  //     {/* Subheading */}
-  //     <Text className="mb-8 text-center text-gray-700 text-xl leading-relaxed dark:text-white">
-  //       Build beautiful apps with{" "}
-  //       <Text className="font-semibold text-blue-500">
-  //         Expo (Router) + Uniwind 🔥
-  //       </Text>
-  //     </Text>
-  //
-  //     {/* Instruction text */}
-  //     <Text className="max-w-sm text-center text-base text-gray-600 dark:text-white">
-  //       Start customizing your app by editing{" "}
-  //       <Text className="font-semibold text-gray-800 dark:text-white">
-  //         app/index.tsx
-  //       </Text>
-  //     </Text>
-  //
-  //     <Button onPress={() => console.log("Pressed!")}>
-  //       <Button.Label>Get Started</Button.Label>
-  //     </Button>
-  //
-  //     <StatusBar style="dark" />
-  //   </View>
-  // );
 }
 
-function TodoRow({ item }: { item: Todo }) {
+function TodoRow({
+  item,
+  onToggle,
+}: {
+  item: Todo;
+  onToggle: (todo: Todo) => void;
+}) {
   return (
-    <View className="rounded-2xl border px-4 py-3">
-      <Text className="text-base">{item.title}</Text>
-      <Text className="mt-1 text-xs opacity-60">
-        {item.completed ? "Completed" : "Active"}
-      </Text>
+    <View className="flex-row items-center justify-between rounded-2xl border px-4 py-3">
+      <View>
+        <Text className="text-base">{item.title}</Text>
+        <Text className="mt-1 text-xs opacity-60">
+          {item.completed ? "Completed" : "Active"}
+        </Text>
+      </View>
+
+      <TouchableOpacity
+        className="rounded-lg border px-3 py-1"
+        onPress={() => onToggle(item)}
+      >
+        <Text>{item.completed ? "Undo" : "Done"}</Text>
+      </TouchableOpacity>
     </View>
   );
 }
